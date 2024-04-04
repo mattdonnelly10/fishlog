@@ -1,0 +1,38 @@
+version: "2.1"
+services:
+  elasticsearch:
+    image: elasticsearch:7.11.1
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - ./elasticsearch_data/:/var/lib/elasticsearch/data
+  logstash-agent:
+    image: logstash:7.11.1
+    volumes:
+      - ./logstash-only:/etc/logstash
+    command: logstash -f /etc/logstash/logstash.conf
+    depends_on:
+      - elasticsearch
+    ports:
+      - 12201:12201/udp
+  kibana:
+    image: kibana:7.11.1
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+  fishnet:
+    image: niklasf/fishnet:2
+    deploy:
+      replicas: 3
+    environment:
+      - "KEY=lichess-key-b64-encoded"
+      - "CORES=2"
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "fishnet"
+    restart: always
