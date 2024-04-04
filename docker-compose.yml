@@ -9,7 +9,7 @@ services:
   logstash-agent:
     image: logstash:7.11.1
     volumes:
-      - ./logstash-only:/etc/logstash
+      - ./logstash:/etc/logstash
     command: logstash -f /etc/logstash/logstash.conf
     depends_on:
       - elasticsearch
